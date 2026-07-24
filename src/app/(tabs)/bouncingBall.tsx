@@ -2,8 +2,10 @@ import { View, StyleSheet, LayoutChangeEvent, CursorValue } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  useFrameCallback,
   clamp,
+  withDecay,
+  cancelAnimation,
+  type SharedValue,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import {
@@ -15,8 +17,41 @@ import { useNavigation } from "expo-router";
 
 const SIZE = 80;
 const BOUNCE_FACTOR = 0.7;
-const FRICTION = 0.99;
 const MIN_VELOCITY = 5;
+
+function startDecay(
+  velocity: number,
+  offset: SharedValue<number>,
+  size: SharedValue<number>,
+) {
+  "worklet";
+  const min = -(size.value / 2) + SIZE / 2;
+  const max = size.value / 2 - SIZE / 2;
+  const start = offset.value;
+
+  if (Math.abs(velocity) < MIN_VELOCITY) {
+    return;
+  }
+
+  offset.value = withDecay({ velocity, clamp: [min, max] }, (finished) => {
+    if (!finished) {
+      return;
+    }
+
+    const hitWall =
+      (offset.value <= min && velocity < 0) ||
+      (offset.value >= max && velocity > 0);
+
+    if (!hitWall) {
+      return;
+    }
+
+    const impact =
+      (offset as { _animation?: { velocity?: number } })._animation?.velocity ??
+      0;
+    startDecay(-impact * BOUNCE_FACTOR, offset, size);
+  });
+}
 
 export default function BouncingBall() {
   const offsetX = useSharedValue<number>(0);
@@ -24,56 +59,11 @@ export default function BouncingBall() {
   const width = useSharedValue<number>(0);
   const height = useSharedValue<number>(0);
 
-  const isAnimating = useSharedValue<boolean>(false);
-  const velocityX = useSharedValue<number>(0);
-  const velocityY = useSharedValue<number>(0);
-
   const navigation = useNavigation();
 
   const setSwipeEnabled = (enabled: boolean) => {
     navigation.setOptions({ swipeEnabled: enabled });
   };
-
-  useFrameCallback((frame) => {
-    "worklet";
-    if (!isAnimating.value) return;
-    const dt = frame.timeSincePreviousFrame ?? 16;
-    const minX = -(width.value / 2) + SIZE / 2;
-    const maxX = width.value / 2 - SIZE / 2;
-    const minY = -(height.value / 2) + SIZE / 2;
-    const maxY = height.value / 2 - SIZE / 2;
-
-    velocityX.value = velocityX.value * FRICTION;
-    velocityY.value = velocityY.value * FRICTION;
-
-    offsetX.value += (velocityX.value * dt) / 1000;
-    offsetY.value += (velocityY.value * dt) / 1000;
-
-    if (offsetX.value < minX) {
-      offsetX.value = minX;
-      velocityX.value = -velocityX.value * BOUNCE_FACTOR;
-    }
-    if (offsetX.value > maxX) {
-      offsetX.value = maxX;
-      velocityX.value = -velocityX.value * BOUNCE_FACTOR;
-    }
-    if (offsetY.value < minY) {
-      offsetY.value = minY;
-      velocityY.value = -velocityY.value * BOUNCE_FACTOR;
-    }
-    if (offsetY.value > maxY) {
-      offsetY.value = maxY;
-      velocityY.value = -velocityY.value * BOUNCE_FACTOR;
-    }
-    if (
-      Math.abs(velocityX.value) < MIN_VELOCITY &&
-      Math.abs(velocityY.value) < MIN_VELOCITY
-    ) {
-      velocityX.value = 0;
-      velocityY.value = 0;
-      isAnimating.value = false;
-    }
-  });
 
   const onLayout = (event: LayoutChangeEvent) => {
     width.value = event.nativeEvent.layout.width;
@@ -83,24 +73,21 @@ export default function BouncingBall() {
   const pan = Gesture.Pan()
     .onBegin(() => {
       scheduleOnRN(setSwipeEnabled, false);
-      isAnimating.value = false;
+      cancelAnimation(offsetX);
+      cancelAnimation(offsetY);
     })
     .onChange((event) => {
-      offsetX.value = clamp(
-        event.changeX + offsetX.value,
-        -(width.value / 2) + SIZE / 2,
-        width.value / 2 - SIZE / 2,
-      );
-      offsetY.value = clamp(
-        event.changeY + offsetY.value,
-        -(height.value / 2) + SIZE / 2,
-        height.value / 2 - SIZE / 2,
-      );
+      const minX = -(width.value / 2) + SIZE / 2;
+      const maxX = width.value / 2 - SIZE / 2;
+      const minY = -(height.value / 2) + SIZE / 2;
+      const maxY = height.value / 2 - SIZE / 2;
+
+      offsetX.value = clamp(event.changeX + offsetX.value, minX, maxX);
+      offsetY.value = clamp(event.changeY + offsetY.value, minY, maxY);
     })
     .onFinalize((event) => {
-      velocityX.value = event.velocityX;
-      velocityY.value = event.velocityY;
-      isAnimating.value = true;
+      startDecay(event.velocityX, offsetX, width);
+      startDecay(event.velocityY, offsetY, height);
       scheduleOnRN(setSwipeEnabled, true);
     });
 

@@ -1,107 +1,85 @@
-import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, {
-  cancelAnimation,
-  Easing,
+  type SharedValue,
   useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
-import { BASE_ORBIT_DURATION } from "./constants";
-import { Orbit } from "./Orbit";
 import type { PlanetConfig } from "./planets";
 
 export function Planet({
   index,
+  layer,
   planet,
-  speedMultiplier,
+  pitch,
+  rotation,
+  selfRotation,
 }: {
   index: number;
+  layer: "far" | "near";
   planet: PlanetConfig;
-  speedMultiplier: number;
+  pitch: SharedValue<number>;
+  rotation: SharedValue<number>;
+  selfRotation: SharedValue<number>;
 }) {
-  const { arcSpeed, selfArcSpeed, size, innerColor, outerColor, orbitRadius } =
-    planet;
+  const { size, innerColor, outerColor, orbitRadius } = planet;
   const radius = size / 2;
-  const rotation = useSharedValue(0);
-  const selfRotation = useSharedValue(0);
+  const gradientId = `planet-${layer}-${index}`;
 
-  useEffect(() => {
-    cancelAnimation(selfRotation);
-    if (speedMultiplier <= 0) return;
-    selfRotation.value = withRepeat(
-      withTiming(selfRotation.value + 2 * Math.PI, {
-        duration: BASE_ORBIT_DURATION / (selfArcSpeed * speedMultiplier),
-        easing: Easing.linear,
-      }),
-      -1,
-    );
-    return () => cancelAnimation(selfRotation);
-  }, [selfArcSpeed, speedMultiplier]);
+  const animatedStyle = useAnimatedStyle(() => {
+    const onFarSide =
+      pitch.value >= 0
+        ? Math.sin(rotation.value) >= 0
+        : Math.sin(rotation.value) < 0;
+    const visible = layer === "far" ? onFarSide : !onFarSide;
 
-  useEffect(() => {
-    cancelAnimation(rotation);
-    if (speedMultiplier <= 0) return;
-    rotation.value = withRepeat(
-      withTiming(rotation.value + 2 * Math.PI, {
-        duration: BASE_ORBIT_DURATION / (arcSpeed * speedMultiplier),
-        easing: Easing.linear,
-      }),
-      -1,
-    );
-    return () => cancelAnimation(rotation);
-  }, [arcSpeed, speedMultiplier]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: orbitRadius * Math.cos(rotation.value) },
-      { translateY: orbitRadius * Math.sin(rotation.value) },
-      { rotate: `${selfRotation.value}rad` },
-    ],
-  }));
+    return {
+      opacity: visible ? 1 : 0,
+      transform: [
+        { translateX: orbitRadius * Math.cos(rotation.value) },
+        {
+          translateY:
+            orbitRadius *
+            Math.sin(rotation.value) *
+            Math.cos((pitch.value * Math.PI) / 180),
+        },
+        { rotate: `${selfRotation.value}rad` },
+      ],
+    };
+  });
 
   return (
-    <View style={styles.orbit}>
-      <Orbit radius={orbitRadius} />
-      <Animated.View
-        style={[
-          styles.planet,
-          {
-            marginLeft: -radius,
-            marginTop: -radius,
-          },
-          animatedStyle,
-        ]}
-      >
-        <Svg width={size} height={size}>
-          <Defs>
-            <RadialGradient id={`planet-${index}`} cx="35%" cy="35%" r="50%">
-              <Stop offset="0%" stopColor={innerColor} />
-              <Stop offset="100%" stopColor={outerColor} />
-            </RadialGradient>
-          </Defs>
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius}
-            fill={`url(#planet-${index})`}
-          />
-        </Svg>
-      </Animated.View>
-    </View>
+    <Animated.View
+      style={[
+        styles.planet,
+        {
+          marginLeft: -radius,
+          marginTop: -radius,
+        },
+        animatedStyle,
+      ]}
+    >
+      <Svg width={size} height={size}>
+        <Defs>
+          <RadialGradient id={gradientId} cx="35%" cy="35%" r="50%">
+            <Stop offset="0%" stopColor={innerColor} />
+            <Stop offset="100%" stopColor={outerColor} />
+          </RadialGradient>
+        </Defs>
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={radius}
+          fill={`url(#${gradientId})`}
+        />
+      </Svg>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  orbit: {
+  planet: {
     position: "absolute",
     left: "50%",
     top: "50%",
-  },
-  planet: {
-    position: "absolute",
-    zIndex: 20,
   },
 });

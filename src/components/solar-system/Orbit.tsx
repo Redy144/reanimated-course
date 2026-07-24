@@ -27,6 +27,5 @@ export function Orbit({ radius }: { radius: number }) {
 const styles = StyleSheet.create({
   svg: {
     position: "absolute",
-    zIndex: 0,
   },
 });

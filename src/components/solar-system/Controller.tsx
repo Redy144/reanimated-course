@@ -1,5 +1,14 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { ComponentProps } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SymbolView } from "expo-symbols";
 import { ORBIT_COLOR } from "./constants";
 
 const MIN_SPEED = 0;
@@ -10,37 +19,63 @@ function clampSpeed(speed: number) {
   return Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed));
 }
 
+function ControlButton({
+  onPress,
+  name,
+  style,
+}: {
+  onPress: () => void;
+  name: ComponentProps<typeof SymbolView>["name"];
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.button,
+        style,
+        pressed && styles.buttonPressed,
+      ]}
+      onPress={onPress}
+    >
+      <SymbolView name={name} size={22} tintColor="#FFFFFF" />
+    </Pressable>
+  );
+}
+
 export function Controller({
   speed,
   setSpeed,
+  resetPitch,
 }: {
   speed: number;
   setSpeed: (speed: number) => void;
+  resetPitch: () => void;
 }) {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 12 }]}>
       <View style={styles.row}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={() => setSpeed(clampSpeed(speed - SPEED_STEP))}
-        >
-          <Text style={styles.buttonLabel}>−</Text>
-        </Pressable>
-        <Text style={styles.speedLabel}>{speed.toFixed(1)}×</Text>
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={() => setSpeed(clampSpeed(speed + SPEED_STEP))}
-        >
-          <Text style={styles.buttonLabel}>+</Text>
-        </Pressable>
+        <ControlButton
+          name={{
+            ios: "arrow.clockwise",
+            android: "refresh",
+            web: "refresh",
+          }}
+          onPress={resetPitch}
+          style={styles.resetButton}
+        />
+        <View style={styles.speedControls}>
+          <ControlButton
+            name={{ ios: "minus", android: "remove", web: "remove" }}
+            onPress={() => setSpeed(clampSpeed(speed - SPEED_STEP))}
+          />
+          <Text style={styles.speedLabel}>{speed.toFixed(1)}×</Text>
+          <ControlButton
+            name={{ ios: "plus", android: "add", web: "add" }}
+            onPress={() => setSpeed(clampSpeed(speed + SPEED_STEP))}
+          />
+        </View>
       </View>
     </View>
   );
@@ -62,6 +97,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  resetButton: {
+    position: "absolute",
+    left: 16,
+  },
+  speedControls: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   button: {
@@ -75,11 +119,6 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     opacity: 0.6,
-  },
-  buttonLabel: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    lineHeight: 22,
   },
   speedLabel: {
     color: "rgba(255, 255, 255, 0.9)",

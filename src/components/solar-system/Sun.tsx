@@ -1,10 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import Svg, {
-  Circle,
-  Defs,
-  RadialGradient,
-  Stop,
-} from "react-native-svg";
+import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { SUN_CORONA_SCALE, SUN_SIZE } from "./constants";
 
 const CORONA_SIZE = SUN_SIZE * SUN_CORONA_SCALE;
@@ -17,10 +12,10 @@ const SUNSPOTS = [
   { cx: DISC_CENTER * 1.18, cy: DISC_CENTER * 0.88, r: 2.5 },
 ];
 
-export function Sun() {
+export function SunCorona() {
   return (
-    <View style={styles.container}>
-      <Svg width={CORONA_SIZE} height={CORONA_SIZE} style={styles.corona}>
+    <View style={styles.container} pointerEvents="none">
+      <Svg width={CORONA_SIZE} height={CORONA_SIZE}>
         <Defs>
           <RadialGradient id="sunCorona" cx="50%" cy="50%" r="50%">
             <Stop offset="0%" stopColor="rgba(255, 180, 50, 0.35)" />
@@ -36,8 +31,14 @@ export function Sun() {
           opacity={0.3}
         />
       </Svg>
+    </View>
+  );
+}
 
-      <Svg width={SUN_SIZE} height={SUN_SIZE} style={styles.disc}>
+export function SunDisc() {
+  return (
+    <View style={styles.discContainer} pointerEvents="none">
+      <Svg width={SUN_SIZE} height={SUN_SIZE}>
         <Defs>
           <RadialGradient id="sunDisc" cx="45%" cy="45%" r="50%">
             <Stop offset="0%" stopColor="#FFFDE7" />
@@ -68,16 +69,21 @@ export function Sun() {
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
     width: CORONA_SIZE,
     height: CORONA_SIZE,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
+    marginLeft: -CORONA_RADIUS,
+    marginTop: -CORONA_RADIUS,
   },
-  corona: {
+  discContainer: {
     position: "absolute",
-  },
-  disc: {
-    position: "absolute",
+    left: "50%",
+    top: "50%",
+    width: SUN_SIZE,
+    height: SUN_SIZE,
+    marginLeft: -DISC_RADIUS,
+    marginTop: -DISC_RADIUS,
   },
 });
