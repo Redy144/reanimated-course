@@ -8,21 +8,27 @@ import { Image } from "expo-image";
 export default function AnimatedKeyboard() {
   return (
     <KeyboardProvider>
-      <KeyboardAvoidingView behavior="padding">
-        <View style={styles.container}>
-          <TextInput placeholder="Enter your text" style={styles.input} />
-          <Image
-            source={require("@/assets/unicorn.png")}
-            style={styles.unicorn}
-            contentFit="contain"
-          />
-        </View>
+      <Image
+        source={require("@/assets/unicorn.png")}
+        style={styles.unicorn}
+        contentFit="contain"
+      />
+      <KeyboardAvoidingView
+        behavior="padding"
+        keyboardVerticalOffset={100}
+        style={styles.content}
+      >
+        <TextInput placeholder="Enter your text" style={styles.input} />
       </KeyboardAvoidingView>
     </KeyboardProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     alignItems: "center",
