@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -48,7 +48,7 @@ export function Controller({
   resetPitch,
 }: {
   speed: number;
-  setSpeed: (speed: number) => void;
+  setSpeed: Dispatch<SetStateAction<number>>;
   resetPitch: () => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -68,12 +68,16 @@ export function Controller({
         <View style={styles.speedControls}>
           <ControlButton
             name={{ ios: "minus", android: "remove", web: "remove" }}
-            onPress={() => setSpeed(clampSpeed(speed - SPEED_STEP))}
+            onPress={() =>
+              setSpeed((current) => clampSpeed(current - SPEED_STEP))
+            }
           />
           <Text style={styles.speedLabel}>{speed.toFixed(1)}×</Text>
           <ControlButton
             name={{ ios: "plus", android: "add", web: "add" }}
-            onPress={() => setSpeed(clampSpeed(speed + SPEED_STEP))}
+            onPress={() =>
+              setSpeed((current) => clampSpeed(current + SPEED_STEP))
+            }
           />
         </View>
       </View>

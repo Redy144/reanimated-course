@@ -4,17 +4,25 @@ import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const UNICORN_WIDTH = 120;
+const UNICORN_ASPECT = 1308 / 947;
+const UNICORN_HEIGHT = UNICORN_WIDTH / UNICORN_ASPECT; // ~86.9
+const INPUT_MARGIN_BOTTOM = 16;
 
 export default function AnimatedKeyboard() {
+  const insets = useSafeAreaInsets();
+  const closedOffset = -(insets.bottom + UNICORN_HEIGHT + INPUT_MARGIN_BOTTOM);
   return (
     <KeyboardProvider>
       <View style={styles.container}>
-        <KeyboardStickyView offset={{ closed: -(44 + 87 + 16), opened: 8 }}>
+        <KeyboardStickyView offset={{ closed: closedOffset, opened: 0 }}>
           <TextInput placeholder="Enter your text" style={styles.input} />
         </KeyboardStickyView>
         <Image
           source={require("@/assets/unicorn.png")}
-          style={styles.unicorn}
+          style={[styles.unicorn, { bottom: insets.bottom }]}
           contentFit="contain"
         />
       </View>
@@ -38,8 +46,7 @@ const styles = StyleSheet.create({
   },
   unicorn: {
     position: "absolute",
-    bottom: 44,
-    width: 120,
-    aspectRatio: 1308 / 947,
+    width: UNICORN_WIDTH,
+    aspectRatio: UNICORN_ASPECT,
   },
 });

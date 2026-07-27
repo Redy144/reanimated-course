@@ -26,6 +26,7 @@ import {
 const CONTENT_PADDING = 16;
 const CONTENT_DIAMETER = MAX_CONTENT_RADIUS * 2;
 const MAX_PITCH_DEG = 90;
+const PITCH_DEG_PER_PX = 0.35;
 
 function Planets({
   layer,
@@ -110,15 +111,19 @@ export function SolarSystem() {
     setScale(Math.min(1, availableRadius / MAX_CONTENT_RADIUS));
   };
 
-  const pan = Gesture.Pan()
-    .maxPointers(1)
-    .onChange((event) => {
-      pitch.value = clamp(
-        pitch.value + event.changeY,
-        -MAX_PITCH_DEG,
-        MAX_PITCH_DEG,
-      );
-    });
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .maxPointers(1)
+        .onChange((event) => {
+          pitch.value = clamp(
+            pitch.value + event.changeY * PITCH_DEG_PER_PX,
+            -MAX_PITCH_DEG,
+            MAX_PITCH_DEG,
+          );
+        }),
+    [pitch],
+  );
 
   return (
     <GestureHandlerRootView style={styles.root} onLayout={onLayout}>
