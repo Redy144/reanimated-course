@@ -26,12 +26,20 @@ export function Orbit({
   side: Side;
 }) {
   const clipStyle = useAnimatedStyle(() => ({
-    top: showTopFor(side, pitch.value) ? 0 : HALF_CONTENT,
+    transform: [
+      {
+        translateY: showTopFor(side, pitch.value) ? 0 : HALF_CONTENT,
+      },
+    ],
   }));
 
   const orbitPlaneStyle = useAnimatedStyle(() => ({
-    top: showTopFor(side, pitch.value) ? HALF_CONTENT : 0,
-    transform: [{ scaleY: Math.cos((pitch.value * Math.PI) / 180) }],
+    transform: [
+      {
+        translateY: showTopFor(side, pitch.value) ? HALF_CONTENT : 0,
+      },
+      { scaleY: Math.cos((pitch.value * Math.PI) / 180) },
+    ],
   }));
 
   return (
@@ -62,6 +70,7 @@ export function Orbit({
 const styles = StyleSheet.create({
   clip: {
     position: "absolute",
+    top: 0,
     left: 0,
     width: CONTENT_DIAMETER,
     height: HALF_CONTENT,
@@ -70,6 +79,7 @@ const styles = StyleSheet.create({
   orbitPlane: {
     position: "absolute",
     left: "50%",
+    top: 0,
   },
   svg: {
     position: "absolute",
