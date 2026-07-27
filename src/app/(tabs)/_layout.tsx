@@ -11,6 +11,10 @@ export default function TabLayout() {
         name="bouncingBall"
         options={{ title: "Bouncing Ball" }}
       />
+      <TopTabs.Screen
+        name="animatedKeyboard"
+        options={{ title: "Animated Keyboard" }}
+      />
     </TopTabs>
   );
 }

@@ -12,13 +12,12 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
-import Animated, {
+import {
   cancelAnimation,
   clamp,
   Easing,
   makeMutable,
   type SharedValue,
-  useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -26,55 +25,7 @@ import Animated, {
 
 const CONTENT_PADDING = 16;
 const CONTENT_DIAMETER = MAX_CONTENT_RADIUS * 2;
-const HALF_CONTENT = CONTENT_DIAMETER / 2;
 const MAX_PITCH_DEG = 90;
-
-function Orbits({
-  pitch,
-  side,
-}: {
-  pitch: SharedValue<number>;
-  side: "far" | "near";
-}) {
-  const orbitPlaneStyle = useAnimatedStyle(() => {
-    const topIsFar = pitch.value < 0;
-    const showTop = side === "far" ? topIsFar : !topIsFar;
-    return {
-      top: showTop ? HALF_CONTENT : 0,
-      transform: [{ scaleY: Math.cos((pitch.value * Math.PI) / 180) }],
-    };
-  });
-
-  return (
-    <Animated.View style={[styles.orbitPlane, orbitPlaneStyle]}>
-      {planets.map((planet, index) => (
-        <Orbit key={index} radius={planet.orbitRadius} />
-      ))}
-    </Animated.View>
-  );
-}
-
-function OrbitLayer({
-  pitch,
-  side,
-}: {
-  pitch: SharedValue<number>;
-  side: "far" | "near";
-}) {
-  const clipStyle = useAnimatedStyle(() => {
-    const topIsFar = pitch.value < 0;
-    const showTop = side === "far" ? topIsFar : !topIsFar;
-    return {
-      top: showTop ? 0 : HALF_CONTENT,
-    };
-  });
-
-  return (
-    <Animated.View style={[styles.clip, clipStyle]} pointerEvents="none">
-      <Orbits pitch={pitch} side={side} />
-    </Animated.View>
-  );
-}
 
 function Planets({
   layer,
@@ -183,12 +134,12 @@ export function SolarSystem() {
         <View style={[styles.content, { transform: [{ scale }] }]}>
           <SunCorona />
 
-          <OrbitLayer pitch={pitch} side="far" />
+          <Orbit pitch={pitch} side="far" />
           <Planets layer="far" motions={motions} pitch={pitch} />
 
           <SunDisc />
 
-          <OrbitLayer pitch={pitch} side="near" />
+          <Orbit pitch={pitch} side="near" />
           <Planets layer="near" motions={motions} pitch={pitch} />
         </View>
       </GestureDetector>
@@ -208,16 +159,5 @@ const styles = StyleSheet.create({
     height: CONTENT_DIAMETER,
     justifyContent: "center",
     alignItems: "center",
-  },
-  clip: {
-    position: "absolute",
-    left: 0,
-    width: CONTENT_DIAMETER,
-    height: HALF_CONTENT,
-    overflow: "hidden",
-  },
-  orbitPlane: {
-    position: "absolute",
-    left: "50%",
   },
 });
