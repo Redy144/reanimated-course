@@ -5,6 +5,7 @@ import Animated, {
 } from "react-native-reanimated";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import type { PlanetConfig } from "./planets";
+import { ORBIT_STROKE_WIDTH } from "./constants";
 
 export function Planet({
   index,
@@ -26,10 +27,12 @@ export function Planet({
   const gradientId = `planet-${layer}-${index}`;
 
   const animatedStyle = useAnimatedStyle(() => {
-    const onFarSide =
-      pitch.value >= 0
-        ? Math.sin(rotation.value) >= 0
-        : Math.sin(rotation.value) < 0;
+    const depth =
+      pitch.value >= 0 ? Math.sin(rotation.value) : -Math.sin(rotation.value);
+    const pitchScale = Math.abs(Math.cos((pitch.value * Math.PI) / 180));
+    const clearance = planet.size / 2 + ORBIT_STROKE_WIDTH + 2;
+    const margin = clearance / (orbitRadius * Math.max(pitchScale, 0.2));
+    const onFarSide = depth >= margin;
     const visible = layer === "far" ? onFarSide : !onFarSide;
 
     return {
