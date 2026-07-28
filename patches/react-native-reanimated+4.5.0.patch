@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-reanimated/react-native.config.js b/node_modules/react-native-reanimated/react-native.config.js
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/node_modules/react-native-reanimated/react-native.config.js
+@@ -0,0 +1,12 @@
++module.exports = {
++  dependency: {
++    platforms: {
++      android: {
++        componentDescriptors: [
++          "REASharedTransitionBoundaryComponentDescriptor",
++        ],
++        cmakeListsPath: "../Common/NativeView/CMakeLists.txt",
++      },
++    },
++  },
++};

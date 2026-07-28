@@ -15,6 +15,7 @@ export default function TabLayout() {
         name="animatedKeyboard"
         options={{ title: "Animated Keyboard" }}
       />
+      <TopTabs.Screen name="list" options={{ title: "List" }} />
     </TopTabs>
   );
 }
