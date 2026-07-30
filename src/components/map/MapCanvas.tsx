@@ -1,10 +1,12 @@
 import { StyleSheet, View } from "react-native";
 import {
   Canvas,
+  Circle,
   Group,
   Image,
   LinearGradient,
   Path,
+  Skia,
   rect,
   vec,
   type SkImage,
@@ -20,7 +22,7 @@ import {
 } from "react-native-reanimated";
 import { useEffect } from "react";
 
-const DOT_TRIM = 0.008;
+const DOT_RADIUS = 4;
 
 type MapCanvasProps = {
   width: number;
@@ -39,9 +41,16 @@ export function MapCanvas({
 }: MapCanvasProps) {
   const progress = useSharedValue(0);
 
-  const dotStart = useDerivedValue(() =>
-    Math.max(0, progress.value - DOT_TRIM),
-  );
+  const dotCenter = useDerivedValue(() => {
+    const iter = Skia.ContourMeasureIter(path.value, false, 1);
+    const contour = iter.next();
+    if (!contour) {
+      return vec(0, 0);
+    }
+
+    const [pos] = contour.getPosTan(progress.value * contour.length());
+    return vec(pos.x, pos.y);
+  });
 
   useEffect(() => {
     if (!isPathComplete) {
@@ -98,15 +107,7 @@ export function MapCanvas({
               colors={["#8B5E3C", "#6C63FF", "#4ADE80"]}
             />
           </Path>
-          <Path
-            path={path}
-            style="stroke"
-            strokeWidth={8}
-            strokeCap="round"
-            color="white"
-            start={dotStart}
-            end={progress}
-          />
+          <Circle c={dotCenter} r={DOT_RADIUS} color="white" />
         </>
       )}
     </Canvas>
