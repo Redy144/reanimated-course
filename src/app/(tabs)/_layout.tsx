@@ -16,6 +16,7 @@ export default function TabLayout() {
         options={{ title: "Animated Keyboard" }}
       />
       <TopTabs.Screen name="slides" options={{ title: "Slides" }} />
+      <TopTabs.Screen name="map" options={{ title: "Map" }} />
     </TopTabs>
   );
 }
