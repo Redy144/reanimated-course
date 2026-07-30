@@ -27,7 +27,6 @@ function startDecay(
   "worklet";
   const min = -(size.value / 2) + SIZE / 2;
   const max = size.value / 2 - SIZE / 2;
-  const start = offset.value;
 
   if (Math.abs(velocity) < MIN_VELOCITY) {
     return;
