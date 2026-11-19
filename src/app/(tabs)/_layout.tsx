@@ -17,6 +17,7 @@ export default function TabLayout() {
       />
       <TopTabs.Screen name="slides" options={{ title: "Slides" }} />
       <TopTabs.Screen name="map" options={{ title: "Map" }} />
+      <TopTabs.Screen name="sensors" options={{ title: "Sensors" }} />
     </TopTabs>
   );
 }
